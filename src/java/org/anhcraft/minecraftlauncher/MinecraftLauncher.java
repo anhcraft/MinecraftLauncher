@@ -154,7 +154,7 @@ public final class MinecraftLauncher {
     }
 
     public static void initCustomVersion(){
-        String url = "https://mclauncher.anhcraft.org/versions.json";
+        String url = "https://cdn.rawgit.com/anhcraft/MinecraftLauncher/master/cdn/versions.json";
         File versionFile = new File(MinecraftLauncher.folder, "custom_versions.json");
         try {
             FileUtils.copyURLToFile(new URL(url), versionFile);
