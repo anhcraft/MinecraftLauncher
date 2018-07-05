@@ -1,0 +1,79 @@
+{
+  "optifine": [
+    {
+      "version": "1.12.2-OptiFine_HD_U_C7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.12.2_HD_U_C7.jar?raw=true",
+      "mcversion": "1.12.2"
+    },
+    {
+      "version": "1.12.1-OptiFine_HD_U_C7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.12.1_HD_U_C7.jar?raw=true",
+      "mcversion": "1.12.1"
+    },
+    {
+      "version": "1.12-OptiFine_HD_U_C7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.12_HD_U_C7.jar?raw=true",
+      "mcversion": "1.12"
+    },
+    {
+      "version": "1.11.2-OptiFine_HD_U_C7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.11.2_HD_U_C7.jar?raw=true",
+      "mcversion": "1.11.2"
+    },
+    {
+      "version": "1.11-OptiFine_HD_U_C7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.11_HD_U_C7.jar?raw=true",
+      "mcversion": "1.11"
+    },
+    {
+      "version": "1.10.2-OptiFine_HD_U_E7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.10.2_HD_U_E7.jar?raw=true",
+      "mcversion": "1.10.2"
+    },
+    {
+      "version": "1.10-OptiFine_HD_U_E7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.10_HD_U_E7.jar?raw=true",
+      "mcversion": "1.10"
+    },
+    {
+      "version": "1.9.4-OptiFine_HD_U_E7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.9.4_HD_U_E7.jar?raw=true",
+      "mcversion": "1.9.4"
+    },
+    {
+      "version": "1.9.2-OptiFine_HD_U_E3",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.9.2_HD_U_E3.jar?raw=true",
+      "mcversion": "1.9.2"
+    },
+    {
+      "version": "1.9.0-OptiFine_HD_U_E7",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.9.0_HD_U_E7.jar?raw=true",
+      "mcversion": "1.9"
+    },
+    {
+      "version": "1.8.9-OptiFine_HD_U_I3",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.8.9_HD_U_I3.jar?raw=true",
+      "mcversion": "1.8.9"
+    },
+    {
+      "version": "1.8.8-OptiFine_HD_U_I3",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.8.8_HD_U_I3.jar?raw=true",
+      "mcversion": "1.8.8"
+    },
+    {
+      "version": "1.8.0-OptiFine_HD_U_I3",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.8.0_HD_U_I3.jar?raw=true",
+      "mcversion": "1.8"
+    },
+    {
+      "version": "1.7.10-OptiFine_HD_U_E3",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.7.10_HD_U_E3.jar?raw=true",
+      "mcversion": "1.7.10"
+    },
+    {
+      "version": "1.7.2-OptiFine_HD_U_F3",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.7.2_HD_U_F3.jar?raw=true",
+      "mcversion": "1.7.2"
+    }
+  ]
+}

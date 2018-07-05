@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="MinecraftLauncher:jar">
+    <output-path>$PROJECT_DIR$/</output-path>
+    <root id="archive" name="MinecraftLauncher.jar">
+      <element id="module-output" name="MinecraftLauncher" />
+      <element id="dir-copy" path="$PROJECT_DIR$/src/resources" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../SpaciousLib/SpaciousLibMain.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

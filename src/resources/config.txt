@@ -1,0 +1,60 @@
+//      MINECRAFT LAUNCHER
+//      ==================
+//      (c) Created by anhcraft
+//      Fb: https://fb.com/anhcraft/
+
+launcher >
+    title > Minecraft Launcher
+    slideshow >
+    - https://i.imgur.com/CJ0Ta9E.png
+    - https://i.imgur.com/hFvDP2h.png
+    - https://i.imgur.com/3GTA8pe.png
+    - https://i.imgur.com/rcVnN5k.png
+    - https://i.imgur.com/3SxLGpN.png
+    - https://i.imgur.com/dZkGAoS.png
+    - https://i.imgur.com/ikWxzLm.png
+    - https://i.imgur.com/0XmEo52.png
+    - https://i.imgur.com/fcGV0Ty.png
+    slideshow_interval > 5
+settings_show_console >
+    label > Hiển thị cửa sổ gỡ lỗi
+    default > false
+    show > true
+settings_resolution >
+    label > Độ phân giải
+    default > 856x482
+    show > true
+settings_arguments >
+    label > Tham số
+    default >
+    show > true
+settings_memory_allocation >
+    label > Cấp phát bộ nhớ
+    default > 1024
+    show > true
+settings >
+    title > Thiết lập
+    header > Thiết lập
+    accept > Đồng ý
+    deny > Hủy bỏ
+progress
+    title > Đợi tí nhé... :D
+start_gui >
+    title > Tùy chỉnh vào game
+    version_list > https://launchermeta.mojang.com/mc/game/version_manifest.json
+    version > PHIÊN BẢN
+    version_filter > Lọc
+    version_snapshot > Snapshot
+    version_release > Ổn định
+    version_old_beta > Beta
+    version_old_alpha > Alpha
+    account > TÀI KHOẢN
+    account_premium > Tài khoản bản quyền
+    account_input_user > Tài khoản
+    account_input_pass > Mật khẩu
+    account_error > Sai tài khoản hoặc mật khẩu
+    version_default_filter >
+        snapshot > false
+        release > true
+        old_beta > false
+        old_alpha > false

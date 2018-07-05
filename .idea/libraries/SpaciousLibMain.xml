@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SpaciousLibMain">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../SpaciousLib/SpaciousLibMain.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
