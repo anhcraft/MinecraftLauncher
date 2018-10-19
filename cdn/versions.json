@@ -1,6 +1,11 @@
 {
   "optifine": [
     {
+      "version": "1.13.1-OptiFine_HD_U_E3",
+      "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.13.1_HD_U_E3.jar?raw=true",
+      "mcversion": "1.13.1"
+    },
+    {
       "version": "1.12.2-OptiFine_HD_U_C7",
       "download": "https://github.com/anhcraft/OptifineMirrors/blob/master/OptiFine_1.12.2_HD_U_C7.jar?raw=true",
       "mcversion": "1.12.2"
