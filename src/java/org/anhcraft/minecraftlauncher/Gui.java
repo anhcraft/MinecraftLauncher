@@ -2,24 +2,21 @@ package org.anhcraft.minecraftlauncher;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.anhcraft.spaciouslib.io.FileManager;
+import org.anhcraft.spaciouslib.utils.IOUtils;
 import org.anhcraft.spaciouslib.utils.RegEx;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,13 +55,7 @@ public class Gui extends Thread {
             File image = new File(backgroundFolder, DigestUtils.md5Hex(img));
             try {
                 if(!image.exists()) {
-                    try {
-                        image.createNewFile();
-                    } catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                    ImageIO.setUseCache(false);
-                    ImageIO.write(ImageIO.read(new URL(img)),  FilenameUtils.getExtension(img), image);
+                    new FileManager(image).initFile(IOUtils.toByteArray(new URL(img).openConnection().getInputStream()));
                 }
                 images.add(ImageIO.read(image));
             } catch(Exception e) {
@@ -75,15 +66,15 @@ public class Gui extends Thread {
         }
         File versionFile = new File(MinecraftLauncher.folder, "versions.json");
         try {
-            FileUtils.copyURLToFile(new URL(MinecraftLauncher.config.getString(
-                    "start_gui.version_list")), versionFile);
+            if(!versionFile.exists() || MinecraftLauncher.needUpdateVersions) {
+                new FileManager(versionFile).create().write(IOUtils.toByteArray(new URL(MinecraftLauncher.config.getString("start_gui.version_list")).openConnection().getInputStream()));
+            }
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
             Progress.setProgress(images.size()+1, a.size()+extend_progress);
             try {
-                MinecraftLauncher.versionJson = new Gson().fromJson(
-                        FileUtils.readFileToString(versionFile, StandardCharsets.UTF_8), JsonObject.class);
+                MinecraftLauncher.versionJson = new Gson().fromJson(new FileManager(versionFile).readAsString(), JsonObject.class);
                 MinecraftLauncher.handleVersions();
             } catch(Exception e) {
                 e.printStackTrace();
@@ -94,7 +85,7 @@ public class Gui extends Thread {
         MinecraftLauncher.initCustomVersion();
         Progress.setProgress(images.size()+3, a.size()+extend_progress);
         try {
-            Thread.sleep(1000);
+            Thread.sleep(500);
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
@@ -104,27 +95,24 @@ public class Gui extends Thread {
 
     public static synchronized void setBackgroundImage() {
         Timer t = new Timer(MinecraftLauncher.config.getInteger(
-                "launcher.slideshow_interval")*1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(slideshow == null){
-                    ((Timer) e.getSource()).stop();
-                    return;
-                }
-                if(0 < images.size()) {
-                    if(backgroundSlides == images.size()) {
-                        backgroundSlides = 0;
+                "launcher.slideshow_interval")*1000, e -> {
+                    if(slideshow == null){
+                        ((Timer) e.getSource()).stop();
+                        return;
                     }
-                    try {
-                        slideshow.setIcon(new ImageIcon(images.get(backgroundSlides)
-                                .getScaledInstance(600, 300, Image.SCALE_SMOOTH)));
-                    } catch(Exception x) {
-                        x.printStackTrace();
+                    if(0 < images.size()) {
+                        if(backgroundSlides == images.size()) {
+                            backgroundSlides = 0;
+                        }
+                        try {
+                            slideshow.setIcon(new ImageIcon(images.get(backgroundSlides)
+                                    .getScaledInstance(600, 300, Image.SCALE_SMOOTH)));
+                        } catch(Exception x) {
+                            x.printStackTrace();
+                        }
+                        backgroundSlides++;
                     }
-                    backgroundSlides++;
-                }
-            }
-        });
+                });
         t.setInitialDelay(0);
         t.start();
     }
@@ -237,12 +225,12 @@ public class Gui extends Thread {
             }
         });
         cont.add(settings);
-/*
-        JLabel copyright = new JLabel("(c) anhcraft");
+
+        JLabel copyright = new JLabel("(c) McLauncher");
         copyright.setFont(f.deriveFont(Font.PLAIN, 15));
         copyright.setPreferredSize(new Dimension(d.width, 60));
         copyright.setBorder(new EmptyBorder(30, 50, 0, 0));
-        cont.add(copyright);*/
+        cont.add(copyright);
 
         if(frame == null){
             frame = new Frame();
@@ -299,7 +287,8 @@ public class Gui extends Thread {
     private static void playGui() {
         if(frame != null){
             frame.removeAll();
-        }console = new JTextArea();
+        }
+        console = new JTextArea();
         FlowLayout flow = new FlowLayout(FlowLayout.LEFT);
         flow.setVgap(0);
         cont = new JPanel();
@@ -454,7 +443,7 @@ public class Gui extends Thread {
 
         String user = "";
         String token = null;
-        Boolean pre = false;
+        boolean pre = false;
         if(MinecraftLauncher.account != null){
             user = MinecraftLauncher.account.user;
             if(MinecraftLauncher.account.token != null){
@@ -707,7 +696,7 @@ public class Gui extends Thread {
                 user = MinecraftLauncher.account.realuser;
             }
         }
-        //if(MinecraftLauncher.setting.show_console) {
+        if(MinecraftLauncher.setting.show_console) {
             if(frame != null) {
                 frame.removeAll();
             }
@@ -786,9 +775,9 @@ public class Gui extends Thread {
             frame.setAlwaysOnTop(true);
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
-       /* } else {
-            main();
-        }*/
+        } else {
+            frame.setVisible(false);
+        }
 
         log("Đang khởi động...");
         MinecraftLauncher.account = new Account();
@@ -799,9 +788,9 @@ public class Gui extends Thread {
         }
         MinecraftLauncher.account.realuser = user;
         MinecraftLauncher.account.user = text;
-        File acc = new File(MinecraftLauncher.folder, "accounts.json");
+        File acc = new File(MinecraftLauncher.folder, "account.json");
         try {
-            FileUtils.write(acc, new Gson().toJson(MinecraftLauncher.account), StandardCharsets.UTF_8, false);
+            new FileManager(acc).create().write(new Gson().toJson(MinecraftLauncher.account));
         } catch(IOException e) {
             e.printStackTrace();
         }
@@ -971,7 +960,7 @@ public class Gui extends Thread {
                     }
                 }
                 if(5 < q.length()){
-                    q = q.delete(5, q.length());
+                    q.delete(5, q.length());
                 }
                 int x = 0;
                 if(0 < q.length()){
@@ -1014,7 +1003,7 @@ public class Gui extends Thread {
                     }
                 }
                 if(5 < q.length()){
-                    q = q.delete(5, q.length());
+                    q.delete(5, q.length());
                 }
                 int y = 0;
                 if(0 < q.length()){
@@ -1071,12 +1060,7 @@ public class Gui extends Thread {
         memory_allocationValue.setPreferredSize(new Dimension(200, 25));
         memory_allocationValue.setBackground(Color.WHITE);
         memory_allocationValue.setFont(f.deriveFont(Font.PLAIN, 14));
-        memory_allocationValue.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                memory_allocationCurrent.setText(Integer.toString(memory_allocationValue.getValue())+"MB");
-            }
-        });
+        memory_allocationValue.addChangeListener(e -> memory_allocationCurrent.setText(Integer.toString(memory_allocationValue.getValue())+"MB"));
         memory_allocation.add(memory_allocationValue);
 
         memory_allocationCurrent.setPreferredSize(new Dimension(100, 25));

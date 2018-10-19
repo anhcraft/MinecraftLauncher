@@ -7,8 +7,7 @@ import com.google.gson.JsonObject;
 import org.anhcraft.BitStorage.APIs.BSViewer;
 import org.anhcraft.spaciouslib.io.DirectoryManager;
 import org.anhcraft.spaciouslib.io.FileManager;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.anhcraft.spaciouslib.utils.IOUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -18,9 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Objects;
 
 public final class MinecraftLauncher {
     public static BSViewer config;
@@ -32,6 +30,7 @@ public final class MinecraftLauncher {
     public static JsonObject versionJson;
     public static LinkedList<McVersion> versions = new LinkedList<>();
     public static Account account;
+    public static boolean needUpdateVersions = true;
 
     public static void copy(InputStream input, OutputStream output, int bufferSize) throws IOException {
         byte[] buf = new byte[bufferSize];
@@ -46,6 +45,7 @@ public final class MinecraftLauncher {
     public static void main(String[] args){
         folder = new File(System.getProperty("user.home")+"\\AppData\\Roaming\\.mclauncher\\");
         new DirectoryManager(folder).mkdirs();
+        new DirectoryManager(new File(folder, "optifine\\")).mkdirs();
         folderMinecraft = new File(System.getProperty("user.home")+"\\AppData\\Roaming\\.minecraft\\");
         new DirectoryManager(folderMinecraft).mkdirs();
         String[] genFolders = {"assets","libraries","logs","mods",
@@ -70,16 +70,35 @@ public final class MinecraftLauncher {
         } catch(IOException e) {
             e.printStackTrace();
         }
-        File acc = new File(folder, "accounts.json");
+        File acc = new File(folder, "account.json");
         if(acc.exists()){
             try {
-                account = new Gson().fromJson(FileUtils.readFileToString(acc, StandardCharsets.UTF_8),
+                account = new Gson().fromJson(new FileManager(acc).readAsString(),
                         Account.class);
             } catch(IOException e) {
                 e.printStackTrace();
             }
         } else {
             new FileManager(acc).create();
+        }
+        File verTracker = new File(folder, "lasttime.txt");
+        if(verTracker.exists()){
+            try {
+                long last = Long.parseLong(new FileManager(verTracker).readAsString());
+                if(System.currentTimeMillis()-last < 86400000){
+                    needUpdateVersions = false;
+                } else {
+                    new FileManager(verTracker).write(Long.toString(System.currentTimeMillis()).getBytes());
+                }
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                new FileManager(verTracker).initFile(Long.toString(System.currentTimeMillis()).getBytes());
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
         }
         new Gui().start();
     }
@@ -91,20 +110,19 @@ public final class MinecraftLauncher {
         s.player_selected = "";
         s.show_console = config.getBoolean("settings_show_console.default");
         s.resolution = config.getString("settings_resolution.default");
-        File settingFile = new File(folder, "setting.json");
+        File settingFile = new File(folder, "settings.json");
         if(!settingFile.exists()){
-            new FileManager(settingFile).create();
-            FileUtils.write(settingFile, new Gson().toJson(s), StandardCharsets.UTF_8, false);
+            new FileManager(settingFile).initFile(new Gson().toJson(s).getBytes(StandardCharsets.UTF_8));
         } else {
-            s = new Gson().fromJson(FileUtils.readFileToString(settingFile, StandardCharsets.UTF_8), Setting.class);
+            s = new Gson().fromJson(new FileManager(settingFile).readAsString(), Setting.class);
         }
         setting = s;
     }
 
     public static void saveSetting() throws IOException {
-        File settingFile = new File(folder, "setting.json");
+        File settingFile = new File(folder, "settings.json");
         if(settingFile.exists()) {
-            FileUtils.write(settingFile, new Gson().toJson(setting), StandardCharsets.UTF_8, false);
+            new FileManager(settingFile).write(new Gson().toJson(setting));
         }
     }
 
@@ -129,13 +147,13 @@ public final class MinecraftLauncher {
             return;
         }
         f:
-        for(File s : folder.listFiles()) {
+        for(File s : Objects.requireNonNull(folder.listFiles())) {
             if(!s.isFile()){
                 if(new File(s, s.getName()+".jar").exists()
                         && new File(s, s.getName()+".json").exists()){
                     try {
-                        JsonObject b = new Gson().fromJson(FileUtils.readFileToString(new File(s,
-                                s.getName()+".json"), StandardCharsets.UTF_8), JsonObject.class);
+                        JsonObject b = new Gson().fromJson(new FileManager(new File(s,
+                                s.getName()+".json")).readAsString(), JsonObject.class);
                         McVersion v = new McVersion();
                         v.id = b.get("id").getAsString();
                         v.type = McVersion.Type.valueOf(b.get("type").getAsString().toUpperCase());
@@ -154,22 +172,23 @@ public final class MinecraftLauncher {
     }
 
     public static void initCustomVersion(){
-        String url = "https://cdn.rawgit.com/anhcraft/MinecraftLauncher/master/cdn/versions.json";
         File versionFile = new File(MinecraftLauncher.folder, "custom_versions.json");
-        try {
-            FileUtils.copyURLToFile(new URL(url), versionFile);
-        } catch(Exception e) {
-            e.printStackTrace();
+        if(!versionFile.exists() || needUpdateVersions) {
+            try {
+                new FileManager(versionFile).create().write(IOUtils.toByteArray(new URL("https://cdn.rawgit.com/anhcraft/MinecraftLauncher/master/cdn/versions.json").openConnection().getInputStream()));
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
         }
         JsonObject customVersionJson = null;
         try {
             customVersionJson = new Gson()
-                    .fromJson(FileUtils.readFileToString(versionFile, StandardCharsets.UTF_8), JsonObject.class);
+                    .fromJson(new FileManager(versionFile).readAsString(), JsonObject.class);
         } catch(IOException e) {
             e.printStackTrace();
         }
         assert customVersionJson != null;
-        List<McVersion> mvl = new ArrayList<>();
+        LinkedList<McVersion> mvl = new LinkedList<>();
         bv:
         for(JsonElement jsonElement : customVersionJson.getAsJsonArray("optifine")) {
             McVersion v = new McVersion();
@@ -182,23 +201,24 @@ public final class MinecraftLauncher {
             }
             File x = new File(folder, "optifine\\"+v.id+".json");
             try {
-                FileUtils.copyURLToFile(new URL(m.jsonUrl), x);
-                JsonObject obj = new Gson().fromJson(FileUtils.readFileToString(x, StandardCharsets.UTF_8), JsonObject.class);
-                obj.addProperty("mainClass", "net.minecraft.launchwrapper.Launch");
-                obj.addProperty("id", v.id);
-                obj.addProperty("minecraftArguments", obj.get("minecraftArguments").getAsString()+
-                        " --tweakClass optifine.OptiFineTweaker");
-                obj.addProperty("inheritsFrom", m.id);
-                JsonArray t = new JsonArray();
-                JsonObject tx1 = new JsonObject();
-                tx1.addProperty("name", "optifine:OptiFine:"+v.id.replaceFirst("-OptiFine",
-                        ""));
-                t.add(tx1);
-                JsonObject tx2 = new JsonObject();
-                tx2.addProperty("name", "net.minecraft:launchwrapper:1.12");
-                t.add(tx2);
-                obj.add("libraries", t);
-                FileUtils.write(x, new Gson().toJson(obj), StandardCharsets.UTF_8, false);
+                if(!x.exists()) {
+                    JsonObject obj = new Gson().fromJson(IOUtils.toString(new URL(m.jsonUrl).openConnection().getInputStream()), JsonObject.class);
+                    obj.addProperty("mainClass", "net.minecraft.launchwrapper.Launch");
+                    obj.addProperty("id", v.id);
+                    obj.addProperty("minecraftArguments", obj.get("minecraftArguments").getAsString()+
+                            " --tweakClass optifine.OptiFineTweaker");
+                    obj.addProperty("inheritsFrom", m.id);
+                    JsonArray t = new JsonArray();
+                    JsonObject tx1 = new JsonObject();
+                    tx1.addProperty("name", "optifine:OptiFine:"+v.id.replaceFirst("-OptiFine",
+                            ""));
+                    t.add(tx1);
+                    JsonObject tx2 = new JsonObject();
+                    tx2.addProperty("name", "net.minecraft:launchwrapper:1.12");
+                    t.add(tx2);
+                    obj.add("libraries", t);
+                    new FileManager(x).initFile(new Gson().toJson(obj).getBytes(StandardCharsets.UTF_8));
+                }
                 v.jsonUrl = x.getAbsolutePath();
                 v.isOptifine = true;
                 v.optifineLibUrl = b.get("download").getAsString();

@@ -3,20 +3,20 @@ package org.anhcraft.minecraftlauncher;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.anhcraft.spaciouslib.io.FileManager;
+import org.anhcraft.spaciouslib.utils.IOUtils;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class LaunchGame extends Thread {
     private String token;
@@ -76,13 +76,11 @@ public class LaunchGame extends Thread {
             if(o.has("inheritsFrom")) {
                 if(!o.get("id").getAsString().equals(o.get("inheritsFrom").getAsString())) {
                     lib.add(downLaunchWarpper(o.get("inheritsFrom").getAsString()));
-                    Thread.sleep(2000);
                 }
             }
             else if(o.has("jar")) {
                 if(!o.get("id").getAsString().equals(o.get("jar").getAsString())) {
                     lib.add(downLaunchWarpper(o.get("jar").getAsString()));
-                    Thread.sleep(2000);
                 }
             }
             if(x.id.toLowerCase().contains("OptiFine".toLowerCase()) || x.isOptifine){
@@ -96,9 +94,8 @@ public class LaunchGame extends Thread {
                         "optifine\\OptiFine\\"+n+"\\OptiFine-"+n+".jar");
                 if(!opt.exists()) {
                     Gui.log("Đang cài thư viện cần thiết cho Optifine...");
-                    FileUtils.copyURLToFile(new URL(x.optifineLibUrl), opt);
+                    new FileManager(opt).initFile(IOUtils.toByteArray(new URL(x.optifineLibUrl).openConnection().getInputStream()));
                 }
-                Thread.sleep(2000);
                 lib.add(opt.getAbsolutePath());
             }
             for(String a : lib){
@@ -122,9 +119,7 @@ public class LaunchGame extends Thread {
             cmd.append(" --username ").append(user).append(" --userProperties [] ");
             if(pre && token != null){
                 String s = IOUtils.toString(new URL(
-                                "https://api.mojang.com/users/profiles/minecraft/"+user),
-                        StandardCharsets.UTF_8);
-                Thread.sleep(2000);
+                                "https://api.mojang.com/users/profiles/minecraft/"+user).openConnection().getInputStream());
                 cmd.append(" --userType mojang --accessToken ").append(token).append(" --uuid ").append(
                         new Gson().fromJson(s, JsonObject.class).get("id").getAsString());
             } else {
@@ -138,12 +133,8 @@ public class LaunchGame extends Thread {
             new ClientProcess(cmd.toString(), MinecraftLauncher.folderMinecraft
                     .getAbsolutePath()+"\\versions\\"+x.id).start();
         } catch(Exception e) {
-            Gui.log("Đang thử lại lần " +i+"...");
-            try {
-                Thread.sleep(3000);
-            } catch(InterruptedException e1) {
-                e1.printStackTrace();
-            }
+            Gui.log("[LỖI] Đang thử lại lần " +i+"...");
+            Gui.log(e.getMessage());
             launch(i+1);
         }
     }
@@ -154,12 +145,7 @@ public class LaunchGame extends Thread {
         if(!f.exists()) {
             f.mkdirs();
             Gui.log("Đang tải net.minecraft.launchwrapper... 1/1");
-            try {
-                Thread.sleep(10);
-            } catch(InterruptedException e1) {
-                e1.printStackTrace();
-            }
-            FileUtils.copyURLToFile(new URL("https://libraries.minecraft.net/"+path), e);
+            new FileManager(e).initFile(IOUtils.toByteArray(new URL("https://libraries.minecraft.net/"+path).openConnection().getInputStream()));
         }
         return e.getAbsolutePath();
     }
@@ -195,7 +181,7 @@ public class LaunchGame extends Thread {
             if(!lib.has("downloads")){
                 continue;
             }
-            JsonObject downloads = lib.getAsJsonObject("downloads");
+            JsonObject downloads = lib.getAsJsonObject("downloads");/*
             if(lib.has("natives")) {
                 JsonObject g = downloads.get("classifiers").getAsJsonObject();
                 if(!g.has("natives-windows")){
@@ -208,7 +194,7 @@ public class LaunchGame extends Thread {
                     n.mkdirs();
                 }
                 File f = File.createTempFile("mclauncher-", Long.toString(System.currentTimeMillis()));
-                FileUtils.copyURLToFile(new URL(a), f);
+                new FileManager(f).initFile(IOUtils.toByteArray(new URL(a).openConnection().getInputStream()));
                 try(ZipFile zipFile = new ZipFile(f)) {
                     Enumeration<? extends ZipEntry> entries = zipFile.entries();
                     while(entries.hasMoreElements()) {
@@ -220,14 +206,14 @@ public class LaunchGame extends Thread {
                             entryDestination.getParentFile().mkdirs();
                             InputStream in = zipFile.getInputStream(entry);
                             OutputStream out = new FileOutputStream(entryDestination);
-                            IOUtils.copy(in, out);
-                            IOUtils.closeQuietly(in);
+                            out.write(IOUtils.toByteArray(in));
+                            out.flush();
                             out.close();
                         }
                     }
                 }
                 continue;
-            }
+            }*/
             if(!downloads.has("artifact")) {
                 continue;
             }
@@ -238,8 +224,7 @@ public class LaunchGame extends Thread {
             if(!f.exists()) {
                 f.mkdirs();
                 Gui.log("Đang tải thư viện " + lib.get("name").getAsString() + "... "+(i+"/"+b));
-                Thread.sleep(10);
-                FileUtils.copyURLToFile(new URL(artifact.get("url").getAsString()), e);
+                new FileManager(e).initFile(IOUtils.toByteArray(new URL(artifact.get("url").getAsString()).openConnection().getInputStream()));
             }
             s.add(e.getAbsolutePath());
         }
@@ -284,9 +269,9 @@ public class LaunchGame extends Thread {
         File a = new File(MinecraftLauncher.folderMinecraft,
                 "assets/indexes/"+o.get("assets").getAsString()+".json");
         if(!a.exists()){
-            FileUtils.copyURLToFile(new URL(o.get("assetIndex").getAsJsonObject().get("url").getAsString()), a);
+            new FileManager(a).initFile(IOUtils.toByteArray(new URL(o.get("assetIndex").getAsJsonObject().get("url").getAsString()).openConnection().getInputStream()));
         }
-        JsonObject x = new Gson().fromJson(FileUtils.readFileToString(a, StandardCharsets.UTF_8),
+        JsonObject x = new Gson().fromJson(new FileManager(a).readAsString(),
                 JsonObject.class).getAsJsonObject("objects");
         int i = 0;
         for(Map.Entry<String, JsonElement> q : x.entrySet()){
@@ -299,8 +284,7 @@ public class LaunchGame extends Thread {
                     "assets/objects/"+r);
             if(!c.exists()){
                 Gui.log("Đang tải tệp tin "+name+"... "+(i+"/"+x.entrySet().size()));
-                Thread.sleep(10);
-                FileUtils.copyURLToFile(new URL("http://resources.download.minecraft.net/"+r), c);
+                new FileManager(c).initFile(IOUtils.toByteArray(new URL("http://resources.download.minecraft.net/"+r).openConnection().getInputStream()));
             }
         }
         Gui.togglebar();
@@ -323,16 +307,16 @@ public class LaunchGame extends Thread {
             if(versionSelected.isOptifine){
                 versionFile = new File(versionSelected.jsonUrl);
             } else {
-                FileUtils.copyURLToFile(new URL(versionSelected.jsonUrl), versionFile);
+                new FileManager(versionFile).initFile(IOUtils.toByteArray(new URL(versionSelected.jsonUrl).openConnection().getInputStream()));
             }
             Gui.log("Đã tải tệp dữ liệu phiên bản!");
         }
-        JsonObject g = new Gson().fromJson(FileUtils.readFileToString(versionFile, StandardCharsets.UTF_8),
+        JsonObject g = new Gson().fromJson(new FileManager(versionFile).readAsString(),
                 JsonObject.class);
         File versionJar = new File(versionFolder,g.get("id").getAsString()+".jar");
         if(!versionJar.exists()){
-            FileUtils.copyURLToFile(new URL(g.get("downloads").getAsJsonObject()
-                        .get("client").getAsJsonObject().get("url").getAsString()), versionJar);
+            new FileManager(versionJar).initFile(IOUtils.toByteArray(new URL(g.get("downloads").getAsJsonObject()
+                    .get("client").getAsJsonObject().get("url").getAsString()).openConnection().getInputStream()));
             Gui.log("Đã tải tệp tin chạy phiên bản!");
         }
         return g;
@@ -341,7 +325,7 @@ public class LaunchGame extends Thread {
     public static AuthToken getAuthToken(String user, String pass) throws Exception {
         Gui.log("[Client -> Mojang] Đang xác thực tài khoản...");
         byte[] payloadBytes = ("{\"agent\":{\"name\":\"Minecraft\",\"version\":1}," +
-                "\"username\":\"" + user + "\",\"password\":\"" + pass + "\"}").getBytes("UTF-8");
+                "\"username\":\"" + user + "\",\"password\":\"" + pass + "\"}").getBytes(StandardCharsets.UTF_8);
         URL url = new URL("https://authserver.mojang.com/authenticate");
         HttpsURLConnection con = (HttpsURLConnection) (url.openConnection());
         con.setDoInput(true);
@@ -388,7 +372,7 @@ public class LaunchGame extends Thread {
 
     public static boolean validateAuthToken(String token) throws Exception {
         Gui.log("[Client -> Mojang] Đang kiểm tra token...");
-        byte[] payloadBytes =  ("{\"accessToken\":\"" + token + "\"}").getBytes("UTF-8");
+        byte[] payloadBytes =  ("{\"accessToken\":\"" + token + "\"}").getBytes(StandardCharsets.UTF_8);
         URL url = new URL("https://authserver.mojang.com/validate");
         HttpsURLConnection con = (HttpsURLConnection) (url.openConnection());
         con.setDoInput(true);
