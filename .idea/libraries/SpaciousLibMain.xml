@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="SpaciousLibMain">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../SpaciousLib/SpaciousLibMain.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../SpaciousLib/SpaciousLibMain/target/SpaciousLibMain.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

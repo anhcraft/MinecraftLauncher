@@ -175,7 +175,7 @@ public final class MinecraftLauncher {
         File versionFile = new File(MinecraftLauncher.folder, "custom_versions.json");
         if(!versionFile.exists() || needUpdateVersions) {
             try {
-                new FileManager(versionFile).create().write(IOUtils.toByteArray(new URL("https://cdn.rawgit.com/anhcraft/MinecraftLauncher/master/cdn/versions.json").openConnection().getInputStream()));
+                new FileManager(versionFile).create().write(IOUtils.toByteArray(new URL("https://cdn.jsdelivr.net/gh/anhcraft/MinecraftLauncher@master/cdn/versions.json").openConnection().getInputStream()));
             } catch(IOException e) {
                 e.printStackTrace();
             }
@@ -205,8 +205,12 @@ public final class MinecraftLauncher {
                     JsonObject obj = new Gson().fromJson(IOUtils.toString(new URL(m.jsonUrl).openConnection().getInputStream()), JsonObject.class);
                     obj.addProperty("mainClass", "net.minecraft.launchwrapper.Launch");
                     obj.addProperty("id", v.id);
-                    obj.addProperty("minecraftArguments", obj.get("minecraftArguments").getAsString()+
-                            " --tweakClass optifine.OptiFineTweaker");
+                    if(obj.has("minecraftArguments")) {
+                        obj.addProperty("minecraftArguments", obj.get("minecraftArguments").getAsString() +
+                                " --tweakClass optifine.OptiFineTweaker");
+                    } else {
+                        obj.addProperty("minecraftArguments", "--tweakClass optifine.OptiFineTweaker");
+                    }
                     obj.addProperty("inheritsFrom", m.id);
                     JsonArray t = new JsonArray();
                     JsonObject tx1 = new JsonObject();

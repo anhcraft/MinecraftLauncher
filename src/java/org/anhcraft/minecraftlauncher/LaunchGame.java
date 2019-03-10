@@ -7,16 +7,16 @@ import org.anhcraft.spaciouslib.io.FileManager;
 import org.anhcraft.spaciouslib.utils.IOUtils;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class LaunchGame extends Thread {
     private String token;
@@ -181,7 +181,7 @@ public class LaunchGame extends Thread {
             if(!lib.has("downloads")){
                 continue;
             }
-            JsonObject downloads = lib.getAsJsonObject("downloads");/*
+            JsonObject downloads = lib.getAsJsonObject("downloads");
             if(lib.has("natives")) {
                 JsonObject g = downloads.get("classifiers").getAsJsonObject();
                 if(!g.has("natives-windows")){
@@ -194,7 +194,7 @@ public class LaunchGame extends Thread {
                     n.mkdirs();
                 }
                 File f = File.createTempFile("mclauncher-", Long.toString(System.currentTimeMillis()));
-                new FileManager(f).initFile(IOUtils.toByteArray(new URL(a).openConnection().getInputStream()));
+                new FileManager(f).write(IOUtils.toByteArray(new URL(a).openConnection().getInputStream()));
                 try(ZipFile zipFile = new ZipFile(f)) {
                     Enumeration<? extends ZipEntry> entries = zipFile.entries();
                     while(entries.hasMoreElements()) {
@@ -211,9 +211,19 @@ public class LaunchGame extends Thread {
                             out.close();
                         }
                     }
+                } catch(Exception e){
+                    new FileManager("err.txt").create();
+                    try {
+                        PrintWriter w = new PrintWriter(new FileOutputStream(new File("err.txt")));
+                        e.printStackTrace(w);
+                        w.append("\n").append(a);
+                        w.flush();
+                    } catch(FileNotFoundException r) {
+                        r.printStackTrace();
+                    }
                 }
                 continue;
-            }*/
+            }
             if(!downloads.has("artifact")) {
                 continue;
             }
